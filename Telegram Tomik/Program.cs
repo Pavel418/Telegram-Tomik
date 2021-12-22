@@ -72,6 +72,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
 
             randomAnswer += value;
         }
+        Console.WriteLine(randomAnswer + "   " + update.Message.From);
         users[id] = new UserInfo() { End = false, Tries = 15, Number = randomAnswer };
         answer = "Hello, my name is Tomik.\nI am here to let you play the Amazing Game of Cows and Bulls.\n" +
         "You have to guess 4-digit number. If the matching digits are in their right positions, they are \"bulls\", if in different positions, they are \"cows\".\n You have 15 tries. Good Luck!\n" +
@@ -85,7 +86,12 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         }
         else
         {
-            if (CheckSameValues(messageText))
+            if (messageText.Length != 4 || !IsDigitsOnly(messageText))
+            {
+                answer = "Answer format is wrong.\n" +
+                    "Please use correct format: 1234";
+            }
+            else if (CheckSameValues(messageText))
             {
                 answer = "Same digits can't appear in the number. Try again.";
             }
@@ -110,6 +116,7 @@ Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, Cancell
     };
 
     Console.WriteLine(ErrorMessage);
+
     return Task.CompletedTask;
 }
 
@@ -117,11 +124,6 @@ string AnalizeNumber(Message message)
 {
     string guess = message.Text;
 
-    if (guess.Length != 4 || !IsDigitsOnly(guess))
-    {
-        return "Answer format is wrong.\n" +
-            "Please use correct format: 1234";
-    }
     long id = message.From.Id;
     string answer = users[id].Number;
     int cows = 0;
